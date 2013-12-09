@@ -1,1 +1,1 @@
-web: ./litr -port 
+web: litr
