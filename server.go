@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	"fmt"
 	"github.com/codegangsta/martini"
 	_ "github.com/lib/pq"
 	"log"
@@ -20,10 +21,12 @@ func openDb() *sql.DB {
 }
 
 func main() {
-	/* db := openDb() */
+	sqlDB := openDb()
+	db := &sqlDB
 	m := martini.Classic()
-	/* m.Map(db) */
+	m.Map(db)
 	m.Get("/", func() string {
+		fmt.Println(*sqlDB)
 		return "Hello world!"
 	})
 	m.Run()
