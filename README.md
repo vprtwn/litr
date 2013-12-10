@@ -1,4 +1,40 @@
 litr
 ====
+litr.io
 
-don't litter. litr.
+# Stack
+* Go
+	* [Martini](http://martini.codegangsta.io/)
+* Postgres
+	* Heroku Postgres
+	* pq (go driver)
+	* Induction (database client)
+* Heroku
+* S3 for static files
+	* [goamz](https://github.com/crowdmob/goamz)
+* wercker for deployment? (later)
+
+# Reference
+## PostgreSQL
+* `heroku pg:info`
+	* db info
+* `heroku pg:psql`
+	* db session
+## Go
+### Tutorials
+* [Wiki](http://golang.org/doc/articles/wiki/)
+* [Guestbook](http://shadynasty.biz/blog/2012/07/30/quick-and-clean-in-go/)
+* [Getting Started With Go On Heroku](http://mmcgrana.github.io/2012/09/getting-started-with-go-on-heroku.html)
+* [Auth and Sessions](http://shadynasty.biz/blog/2012/09/05/auth-and-sessions/)
+
+## XSS
+* HTML sanitization
+
+## CSRF
+
+## DNS
+* limitations of DNS A-records
+	* https://devcenter.heroku.com/articles/apex-domains
+* Zerigo
+	* https://devcenter.heroku.com/articles/zerigo_dns
+* need ALIAS record
