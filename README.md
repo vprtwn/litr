@@ -5,16 +5,20 @@ litr.io
 # Stack
 * Go
 	* [Martini](http://martini.codegangsta.io/)
+        * [gorp](http://shadynasty.biz/blog/2012/09/05/auth-and-sessions/)
 * Postgres
 	* Heroku Postgres
 	* pq (go driver)
 	* Induction (database client)
 * Heroku
-* S3 for static files
+* S3 + CloudFront
 	* [goamz](https://github.com/crowdmob/goamz)
 * wercker for deployment? (later)
 
 # Reference
+## Heroku
+* `heroku logs`
+
 ## PostgreSQL
 * `heroku pg:info`
 	* db info
@@ -31,6 +35,8 @@ litr.io
 * HTML sanitization
 
 ## CSRF
+
+## SSL
 
 ## DNS
 * limitations of DNS A-records
