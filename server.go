@@ -2,7 +2,6 @@ package main
 
 import (
 	"database/sql"
-	"fmt"
 	"github.com/codegangsta/martini"
 	"github.com/coopernurse/gorp"
 	"github.com/lib/pq"
