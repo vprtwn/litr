@@ -40,9 +40,9 @@ litr.io
 ## SSL
 
 ## DNS
+* https://devcenter.heroku.com/articles/apex-domains
 * currently using AWS Route53
 * Should use DNSMadeEasy or DNSimple
-	* https://devcenter.heroku.com/articles/apex-domains
 	* http://www.neilmiddleton.com/doing-dns-right-with-heroku/
 	* http://www.dnsmadeeasy.com/services/aname-records/
 	* http://blog.dnsimple.com/zone-apex-naked-domain-alias-that-works/

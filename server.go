@@ -3,7 +3,7 @@ package main
 import (
 	"code.google.com/p/go.crypto/bcrypt"
 	"database/sql"
-	"fmt"
+	"errors"
 	"github.com/codegangsta/martini"
 	"github.com/coopernurse/gorp"
 	"github.com/lib/pq"
@@ -56,18 +56,22 @@ func newUser(username, password, email string) User {
 // password field to the hash.
 func (u *User) SetPassword(password string) {
 	hpass, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
-	if err != nil {
-		panic(err) // this is a panic because bcrypt errors on invalid costs
-	}
+	checkErr(err, "bcrypt failed")
 	u.Password = hpass
 }
 
 // Login validates and returns a user object if they exist in the database.
 func Login(dbmap *gorp.DbMap, username, password string) (u *User, err error) {
-	err = dbmap.SelectOne(&u, "select * from posts where username=?", username)
-	fmt.Println(u)
-	if err != nil {
-		return
+	var us []User
+	_, err = dbmap.Select(&us, "select * from users where Username = :username",
+		map[string]interface{}{"username": username})
+	checkErr(err, "Select users with matching Username failed")
+	if len(us) == 0 {
+		err = errors.New("No user with matching username found")
+	} else if len(us) > 1 {
+		err = errors.New("Multiple users with the same username found")
+	} else {
+		u = &us[0]
 	}
 
 	err = bcrypt.CompareHashAndPassword(u.Password, []byte(password))
@@ -102,8 +106,8 @@ func main() {
 	})
 	m.Get("/login", func() string {
 		u, err := Login(dbmap, "bg", "password")
-		fmt.Println(u)
-		fmt.Println(err)
+		log.Println("user: %v", u)
+		checkErr(err, "Login error")
 		return "Login"
 	})
 	m.Run()
