@@ -1,6 +1,7 @@
 package main
 
 import (
+	"code.google.com/p/go.crypto/bcrypt"
 	"database/sql"
 	"github.com/codegangsta/martini"
 	"github.com/coopernurse/gorp"
@@ -37,16 +38,27 @@ type User struct {
 	// db tag lets you specify the column name if it differs from the struct field
 	Id       int64 `db:"user_id"`
 	Username string
-	Password string
+	Password []byte
 	Email    string
 }
 
 func newUser(username, password, email string) User {
-	return User{
+	u := User{
 		Username: username,
-		Password: password,
 		Email:    email,
 	}
+	u.SetPassword(password)
+	return u
+}
+
+// SetPassword takes a plaintext password, hashes it with bcrypt and sets the
+// password field to the hash.
+func (u *User) SetPassword(password string) {
+	hpass, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	if err != nil {
+		panic(err) // this is a panic because bcrypt errors on invalid costs
+	}
+	u.Password = hpass
 }
 
 func main() {
@@ -57,6 +69,14 @@ func main() {
 	// delete any existing rows
 	err := dbmap.TruncateTables()
 	checkErr(err, "TruncateTables failed")
+
+	// create two users
+	u1 := newUser("bg", "password", "benzguo@gmail.com")
+	u2 := newUser("bzg", "Password2", "ben@venmo.com")
+
+	// insert rows - auto increment PKs will be set properly
+	err = dbmap.Insert(&u1, &u2)
+	checkErr(err, "Insert failed")
 
 	db := &dbmap
 	m := martini.Classic()
