@@ -5,9 +5,11 @@ import (
 	"database/sql"
 	"errors"
 	"github.com/codegangsta/martini"
+	"github.com/codegangsta/martini-contrib/render"
 	"github.com/coopernurse/gorp"
 	"github.com/lib/pq"
 	"log"
+	"net/http"
 	"os"
 )
 
@@ -43,7 +45,7 @@ type User struct {
 	Email    string
 }
 
-func newUser(username, password, email string) User {
+func NewUser(username, password, email string) User {
 	u := User{
 		Username: username,
 		Email:    email,
@@ -60,8 +62,8 @@ func (u *User) SetPassword(password string) {
 	u.Password = hpass
 }
 
-// Login validates and returns a user object if they exist in the database.
-func Login(dbmap *gorp.DbMap, username, password string) (u *User, err error) {
+// LogIn validates and returns a user object if they exist in the database.
+func LogIn(dbmap *gorp.DbMap, username, password string) (u *User, err error) {
 	var us []User
 	_, err = dbmap.Select(&us, "select * from users where Username = :username",
 		map[string]interface{}{"username": username})
@@ -81,6 +83,11 @@ func Login(dbmap *gorp.DbMap, username, password string) (u *User, err error) {
 	return
 }
 
+/* u, err := Login(dbmap, "bg", "password") */
+/* log.Println("user: %v", u) */
+/* checkErr(err, "Login error") */
+/* return "Login" */
+
 func main() {
 	// initialize the DbMap
 	dbmap := initDb()
@@ -91,8 +98,8 @@ func main() {
 	checkErr(err, "TruncateTables failed")
 
 	// create two users
-	u1 := newUser("bg", "password", "benzguo@gmail.com")
-	u2 := newUser("bzg", "Password2", "ben@venmo.com")
+	u1 := NewUser("bg", "password", "benzguo@gmail.com")
+	u2 := NewUser("bzg", "Password2", "ben@venmo.com")
 
 	// insert rows - auto increment PKs will be set properly
 	err = dbmap.Insert(&u1, &u2)
@@ -101,15 +108,29 @@ func main() {
 	db := &dbmap
 	m := martini.Classic()
 	m.Map(db)
-	m.Get("/", func() string {
-		return "Hello world!"
+	// render html templates from templates directory
+	m.Use(render.Renderer())
+
+	m.Get("/", func(r render.Render) {
+		r.HTML(200, "home", nil)
 	})
-	m.Get("/login", func() string {
-		u, err := Login(dbmap, "bg", "password")
-		log.Println("user: %v", u)
-		checkErr(err, "Login error")
-		return "Login"
+
+	m.Post("/login", func(w http.ResponseWriter, req *http.Request, r render.Render) {
+		u, err := LogIn(dbmap, req.FormValue("username"), req.FormValue("password"))
+		if err != nil {
+			//TODO: session flash with gorilla
+			log.Println(err)
+			r.HTML(200, "home", nil)
+		}
+		if u != nil {
+			http.Redirect(w, req, "/u/"+u.Username, http.StatusFound)
+		}
 	})
+
+	m.Get("/u/:username", func(params martini.Params) string {
+		return "Hello " + params["username"]
+	})
+
 	m.Run()
 }
 
