@@ -3,6 +3,7 @@ package main
 import (
 	"code.google.com/p/go.crypto/bcrypt"
 	"database/sql"
+	"fmt"
 	"github.com/codegangsta/martini"
 	"github.com/coopernurse/gorp"
 	"github.com/lib/pq"
@@ -59,6 +60,21 @@ func (u *User) SetPassword(password string) {
 		panic(err) // this is a panic because bcrypt errors on invalid costs
 	}
 	u.Password = hpass
+}
+
+// Login validates and returns a user object if they exist in the database.
+func Login(dbmap *gorp.DbMap, username, password string) (u *User, err error) {
+	err = dbmap.SelectOne(&u, "select * from posts where username=?", username)
+	fmt.Println(u)
+	if err != nil {
+		return
+	}
+
+	err = bcrypt.CompareHashAndPassword(u.Password, []byte(password))
+	if err != nil {
+		u = nil
+	}
+	return
 }
 
 func main() {
