@@ -100,6 +100,12 @@ func main() {
 	m.Get("/", func() string {
 		return "Hello world!"
 	})
+	m.Get("/login", func() string {
+		u, err := Login(dbmap, "bg", "password")
+		fmt.Println(u)
+		fmt.Println(err)
+		return "Login"
+	})
 	m.Run()
 }
 
