@@ -5,10 +5,10 @@ import (
 	"database/sql"
 	"errors"
 	"github.com/codegangsta/martini"
-	"github.com/codegangsta/martini-contrib/render"
 	"github.com/codegangsta/martini-contrib/sessions"
 	"github.com/coopernurse/gorp"
 	"github.com/lib/pq"
+	"html/template"
 	"log"
 	"net/http"
 	"os"
@@ -44,6 +44,11 @@ type User struct {
 	Username string
 	Password []byte
 	Email    string
+}
+
+type Page struct {
+	Title string
+	Body  []byte
 }
 
 func NewUser(username, password, email string) User {
@@ -110,20 +115,19 @@ func main() {
 	// set up martini
 	m := martini.Classic()
 	m.Map(db)
-	// render html templates from templates directory
-	m.Use(render.Renderer())
 	m.Use(sessions.Sessions("litr", store))
 
-	m.Get("/", func(r render.Render) {
-		r.HTML(200, "home", nil)
+	m.Get("/", func(w http.ResponseWriter, session sessions.Session) {
+		t, err := template.ParseFiles("home.html")
+		checkErr(err, "Failed to parse template")
+		t.Execute(w, nil)
 	})
 
-	m.Post("/login", func(w http.ResponseWriter, r *http.Request, rd render.Render, session sessions.Session) {
+	m.Post("/login", func(w http.ResponseWriter, r *http.Request, session sessions.Session) {
 		u, err := LogIn(dbmap, r.FormValue("username"), r.FormValue("password"))
 		if err != nil {
 			session.AddFlash("Invalid Username/Password")
 			log.Println(err)
-			rd.HTML(200, "home", nil)
 		}
 		if u != nil {
 			session.Set("user", strconv.FormatInt(u.Id, 10))
@@ -131,12 +135,23 @@ func main() {
 		}
 	})
 
-	m.Get("/u/:username", func(params martini.Params, session sessions.Session) string {
+	m.Post("/logout", func(w http.ResponseWriter, r *http.Request, session sessions.Session) {
+		session.Delete("user")
+		/* http.SetCookie(w, &http.Cookie{Name: "litr", MaxAge: -1, Path: "/"}) */
+		http.Redirect(w, r, "/", http.StatusFound)
+	})
+
+	m.Get("/u/:username", func(w http.ResponseWriter, params martini.Params, session sessions.Session) {
 		id := session.Get("user")
+		var p *Page
 		if id == nil {
-			return "Not logged in"
+			p = &Page{Title: "Not logged in"}
+		} else {
+			p = &Page{Title: id.(string)}
 		}
-		return "Hello " + params["username"] + " " + id.(string)
+		t, err := template.ParseFiles("user.html")
+		checkErr(err, "Failed to parse template")
+		t.Execute(w, p)
 	})
 
 	m.Run()
