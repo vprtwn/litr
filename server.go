@@ -6,19 +6,20 @@ import (
 	"errors"
 	"github.com/codegangsta/martini"
 	"github.com/codegangsta/martini-contrib/render"
+	"github.com/codegangsta/martini-contrib/sessions"
 	"github.com/coopernurse/gorp"
 	"github.com/lib/pq"
 	"log"
 	"net/http"
 	"os"
+	"strconv"
 )
 
 func initDb() *gorp.DbMap {
-	// connect to db using standard Go database/sql API
+	// connect to db using database/sql & pq
 	url := os.Getenv("DATABASE_URL")
 	connection, _ := pq.ParseURL(url)
 	connection += " sslmode=disable"
-
 	db, err := sql.Open("postgres", connection)
 	checkErr(err, "sql.Open failed")
 
@@ -29,7 +30,7 @@ func initDb() *gorp.DbMap {
 	// specifying that the Id property is an auto incrementing PK
 	dbmap.AddTableWithName(User{}, "users").SetKeys(true, "Id")
 
-	// create the table. in a production system you'd generally
+	// create the table. In a production system you'd generally
 	// use a migration tool, or create the tables via scripts
 	err = dbmap.CreateTablesIfNotExists()
 	checkErr(err, "Create tables failed")
@@ -83,16 +84,13 @@ func LogIn(dbmap *gorp.DbMap, username, password string) (u *User, err error) {
 	return
 }
 
-/* u, err := Login(dbmap, "bg", "password") */
-/* log.Println("user: %v", u) */
-/* checkErr(err, "Login error") */
-/* return "Login" */
-
 func main() {
-	// initialize the DbMap
+	// initialize database
 	dbmap := initDb()
 	defer dbmap.Db.Close()
+	db := &dbmap
 
+	// --- test data
 	// delete any existing rows
 	err := dbmap.TruncateTables()
 	checkErr(err, "TruncateTables failed")
@@ -104,31 +102,41 @@ func main() {
 	// insert rows - auto increment PKs will be set properly
 	err = dbmap.Insert(&u1, &u2)
 	checkErr(err, "Insert failed")
+	// -- end test data
 
-	db := &dbmap
+	// set up cookie store
+	store := sessions.NewCookieStore([]byte(os.Getenv("KEY")))
+
+	// set up martini
 	m := martini.Classic()
 	m.Map(db)
 	// render html templates from templates directory
 	m.Use(render.Renderer())
+	m.Use(sessions.Sessions("litr", store))
 
 	m.Get("/", func(r render.Render) {
 		r.HTML(200, "home", nil)
 	})
 
-	m.Post("/login", func(w http.ResponseWriter, req *http.Request, r render.Render) {
-		u, err := LogIn(dbmap, req.FormValue("username"), req.FormValue("password"))
+	m.Post("/login", func(w http.ResponseWriter, r *http.Request, rd render.Render, session sessions.Session) {
+		u, err := LogIn(dbmap, r.FormValue("username"), r.FormValue("password"))
 		if err != nil {
-			//TODO: session flash with gorilla
+			session.AddFlash("Invalid Username/Password")
 			log.Println(err)
-			r.HTML(200, "home", nil)
+			rd.HTML(200, "home", nil)
 		}
 		if u != nil {
-			http.Redirect(w, req, "/u/"+u.Username, http.StatusFound)
+			session.Set("user", strconv.FormatInt(u.Id, 10))
+			http.Redirect(w, r, "/u/"+u.Username, http.StatusFound)
 		}
 	})
 
-	m.Get("/u/:username", func(params martini.Params) string {
-		return "Hello " + params["username"]
+	m.Get("/u/:username", func(params martini.Params, session sessions.Session) string {
+		id := session.Get("user")
+		if id == nil {
+			return "Not logged in"
+		}
+		return "Hello " + params["username"] + " " + id.(string)
 	})
 
 	m.Run()
