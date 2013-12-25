@@ -46,9 +46,9 @@ type User struct {
 	Email    string
 }
 
-type Page struct {
-	Title string
-	Body  []byte
+type ProfilePage struct {
+	Title    string
+	LoggedIn bool
 }
 
 func NewUser(username, password, email string) User {
@@ -137,7 +137,6 @@ func main() {
 
 	m.Post("/logout", func(w http.ResponseWriter, r *http.Request, session sessions.Session) {
 		session.Delete("user")
-		/* http.SetCookie(w, &http.Cookie{Name: "litr", MaxAge: -1, Path: "/"}) */
 		http.Redirect(w, r, "/", http.StatusFound)
 	})
 
@@ -145,9 +144,9 @@ func main() {
 		id := session.Get("user")
 		var p *Page
 		if id == nil {
-			p = &Page{Title: "Not logged in"}
+			p = &Page{Title: "Not logged in", LoggedIn: false}
 		} else {
-			p = &Page{Title: id.(string)}
+			p = &Page{Title: id.(string), LoggedIn: true}
 		}
 		t, err := template.ParseFiles("user.html")
 		checkErr(err, "Failed to parse template")

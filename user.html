@@ -1,4 +1,4 @@
 <h1>{{.Title}}</h1>
 <form action="/logout" method="POST">
-	<p><button>Logout</button></p>
+	<p><button>{{if .LoggedIn}}Log out{{else}}Log in{{end}}</button></p>
 </form>
