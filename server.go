@@ -142,11 +142,11 @@ func main() {
 
 	m.Get("/u/:username", func(w http.ResponseWriter, params martini.Params, session sessions.Session) {
 		id := session.Get("user")
-		var p *Page
+		var p *ProfilePage
 		if id == nil {
-			p = &Page{Title: "Not logged in", LoggedIn: false}
+			p = &ProfilePage{Title: "Not logged in", LoggedIn: false}
 		} else {
-			p = &Page{Title: id.(string), LoggedIn: true}
+			p = &ProfilePage{Title: id.(string), LoggedIn: true}
 		}
 		t, err := template.ParseFiles("user.html")
 		checkErr(err, "Failed to parse template")
