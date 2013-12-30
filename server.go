@@ -86,12 +86,13 @@ func LogIn(dbmap *gorp.DbMap, username, password string) (u *User, err error) {
 		err = errors.New("Multiple users with the same username found")
 	} else {
 		u = &us[0]
+		err = bcrypt.CompareHashAndPassword(u.Password, []byte(password))
 	}
 
-	err = bcrypt.CompareHashAndPassword(u.Password, []byte(password))
 	if err != nil {
 		u = nil
 	}
+
 	return
 }
 

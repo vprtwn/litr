@@ -1,9 +1,9 @@
 <h1>litr</h1>
+{{if .HasFlash}}<p>{{.FlashMessage}}</p>{{end}}
 <form action="api/login" method="POST">
     <p>Username: <input type="text" name="username"></p>
     <p>Password: <input type="password" name="password"></p>
     <p><button>Log in</button></p>
-	{{if .HasFlash}}<p>{{.FlashMessage}}</p>{{end}}
 </form>
 <form action="api/signup" method="POST">
 	<p>Username: <input type="text" name="username"></p>
