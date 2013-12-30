@@ -1,6 +1,13 @@
 <h1>litr</h1>
-<form action="/login" method="POST">
+<form action="api/login" method="POST">
     <p>Username: <input type="text" name="username"></p>
     <p>Password: <input type="password" name="password"></p>
-    <p><button>Login</button></p>
+    <p><button>Log in</button></p>
+	{{if .HasFlash}}<p>{{.FlashMessage}}</p>{{end}}
+</form>
+<form action="api/signup" method="POST">
+	<p>Username: <input type="text" name="username"></p>
+	<p>Email: <input type="email" name="email"></p>
+	<p>Password: <input type="password" name="password"></p>
+	<p><button>Sign up</button></p>
 </form>
