@@ -1,19 +1,9 @@
 litr
 ====
-litr.io
 
-# Stack
 * Go
 	* [Martini](http://martini.codegangsta.io/)
         * [gorp](http://shadynasty.biz/blog/2012/09/05/auth-and-sessions/)
-* Postgres
-	* Heroku Postgres
-	* pq (go driver)
-	* Induction (database client)
-* Heroku
-* S3 + CloudFront
-	* [goamz](https://github.com/crowdmob/goamz)
-* wercker for deployment? (later)
 
 # Reference
 ## Heroku
@@ -31,18 +21,3 @@ litr.io
 * [Getting Started With Go On Heroku](http://mmcgrana.github.io/2012/09/getting-started-with-go-on-heroku.html)
 * [Auth and Sessions](http://shadynasty.biz/blog/2012/09/05/auth-and-sessions/)
 * [gorp tutorial](http://nathanleclaire.com/blog/2013/11/04/want-to-work-with-databases-in-golang-lets-try-some-gorp/)
-
-## XSS
-* HTML sanitization
-
-## CSRF
-
-## SSL
-
-## DNS
-* https://devcenter.heroku.com/articles/apex-domains
-* currently using AWS Route53
-* Should use DNSMadeEasy or DNSimple
-	* http://www.neilmiddleton.com/doing-dns-right-with-heroku/
-	* http://www.dnsmadeeasy.com/services/aname-records/
-	* http://blog.dnsimple.com/zone-apex-naked-domain-alias-that-works/
